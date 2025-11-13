@@ -1,1 +1,152 @@
-gkjhg
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kaitlyn Boggs — Gallery</title>
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <h1>Image & File Gallery</h1>
+  <p class="subtitle">Click a thumbnail to open a larger view. PSD and other source files are available to download below.</p>
+</header>
+
+<main>
+  <section id="gallery" class="grid" aria-label="Image gallery"></section>
+  <section id="files" class="files" aria-label="Other files"></section>
+</main>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox hidden" role="dialog" aria-hidden="true" aria-label="Image viewer">
+  <button id="lb-close" class="lb-btn close" aria-label="Close">&times;</button>
+  <button id="lb-prev" class="lb-btn prev" aria-label="Previous">&#10094;</button>
+  <button id="lb-next" class="lb-btn next" aria-label="Next">&#10095;</button>
+  <div class="lightbox-frame">
+    <img id="lb-image" src="" alt="">
+    <p id="lb-caption" class="caption"></p>
+  </div>
+</div>
+
+<script>
+// Files in the repository. Update this list if you rename files.
+const repoFiles = [
+  "Dino.jpg",
+  "Fart.JPG",
+  "Untitled_Artwork 2 copy.png",
+  "Untitled_Artwork copy.png",
+  "Untitled_Artwork1 copy.png",
+  "IMG_0005.psd",
+  "IMG_0030.psd",
+  "Untitled_Artwork 2.psd"
+];
+
+const imageExt = /\.(jpe?g|png|gif|webp|bmp)$/i;
+const psdExt = /\.psd$/i;
+
+const gallery = document.getElementById('gallery');
+const filesSection = document.getElementById('files');
+
+const images = [];
+const otherFiles = [];
+
+repoFiles.forEach(name => {
+  if (imageExt.test(name)) images.push(name);
+  else otherFiles.push(name);
+});
+
+// Build image thumbnails
+images.forEach((name, i) => {
+  const a = document.createElement('a');
+  a.href = encodeURI(name);
+  a.className = 'thumb';
+  a.dataset.index = i;
+  const img = document.createElement('img');
+  img.src = encodeURI(name);
+  img.alt = name;
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  a.appendChild(img);
+  gallery.appendChild(a);
+});
+
+// Build file cards for PSDs and others
+otherFiles.forEach(name => {
+  const ext = name.split('.').pop();
+  const card = document.createElement('div');
+  card.className = 'file-card';
+  const icon = document.createElement('div');
+  icon.className = 'file-icon';
+  icon.innerHTML = psdExt.test(name) ? '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" fill="#0b1220" stroke="#9fb0cc"/><path d="M8 7h5l3 3v7" stroke="#9fb0cc" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" fill="#0b1220" stroke="#9fb0cc"/><path d="M7 12h10M7 8h7M7 16h6" stroke="#9fb0cc" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const meta = document.createElement('div');
+  meta.className = 'file-meta';
+  const title = document.createElement('div');
+  title.className = 'file-title';
+  title.textContent = name;
+  const actions = document.createElement('div');
+  actions.className = 'file-actions';
+  const link = document.createElement('a');
+  link.href = encodeURI(name);
+  link.textContent = psdExt.test(name) ? 'Download PSD' : 'Open file';
+  link.className = 'file-link';
+  link.setAttribute('download', '');
+  actions.appendChild(link);
+  meta.appendChild(title);
+  meta.appendChild(actions);
+  card.appendChild(icon);
+  card.appendChild(meta);
+  filesSection.appendChild(card);
+});
+
+// Lightbox behavior
+let currentIndex = 0;
+const lightbox = document.getElementById('lightbox');
+const lbImage = document.getElementById('lb-image');
+const lbCaption = document.getElementById('lb-caption');
+
+function openLightbox(i) {
+  currentIndex = i;
+  const src = encodeURI(images[currentIndex]);
+  lbImage.src = src;
+  lbImage.alt = images[currentIndex];
+  lbCaption.textContent = images[currentIndex];
+  lightbox.classList.remove('hidden');
+  lightbox.setAttribute('aria-hidden','false');
+  document.getElementById('lb-close').focus();
+}
+
+function closeLightbox() {
+  lightbox.classList.add('hidden');
+  lightbox.setAttribute('aria-hidden','true');
+  lbImage.src = '';
+}
+
+function next() {
+  currentIndex = (currentIndex+1)%images.length;
+  openLightbox(currentIndex);
+}
+function prev() {
+  currentIndex = (currentIndex-1+images.length)%images.length;
+  openLightbox(currentIndex);
+}
+
+gallery.addEventListener('click', e => {
+  const a = e.target.closest('a.thumb');
+  if(!a) return;
+  e.preventDefault();
+  openLightbox(parseInt(a.dataset.index,10));
+});
+
+document.getElementById('lb-close').addEventListener('click', closeLightbox);
+document.getElementById('lb-next').addEventListener('click', next);
+document.getElementById('lb-prev').addEventListener('click', prev);
+lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+document.addEventListener('keydown', e => {
+  if(lightbox.classList.contains('hidden')) return;
+  if(e.key === 'Escape') closeLightbox();
+  if(e.key === 'ArrowRight') next();
+  if(e.key === 'ArrowLeft') prev();
+});
+</script>
+</body>
+</html>
